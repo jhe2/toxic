@@ -29,6 +29,7 @@
 #include "friendlist.h"
 #include "execute.h"
 #include "line_info.h"
+#include "conference.h"
 #include "groupchat.h"
 #include "chat.h"
 #include "file_transfers.h"
@@ -80,7 +81,8 @@ void cmd_cancelfile(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*ar
     close_file_transfer(self, m, ft, TOX_FILE_CONTROL_CANCEL, msg, silent);
 }
 
-void cmd_groupinvite(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE])
+
+void cmd_conference_invite(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE])
 {
     UNUSED_VAR(window);
 
@@ -89,24 +91,24 @@ void cmd_groupinvite(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*a
         return;
     }
 
-    long int groupnum = strtol(argv[1], NULL, 10);
+    long int conferencenum = strtol(argv[1], NULL, 10);
 
-    if ((groupnum == 0 && strcmp(argv[1], "0")) || groupnum < 0 || groupnum == LONG_MAX) {
-        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Invalid group number.");
+    if ((conferencenum == 0 && strcmp(argv[1], "0")) || conferencenum < 0 || conferencenum == LONG_MAX) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Invalid conference number.");
         return;
     }
 
     Tox_Err_Conference_Invite err;
 
-    if (!tox_conference_invite(m, self->num, groupnum, &err)) {
-        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Failed to invite contact to group (error %d)", err);
+    if (!tox_conference_invite(m, self->num, conferencenum, &err)) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Failed to invite contact to conference (error %d)", err);
         return;
     }
 
-    line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Invited contact to Group %d.", groupnum);
+    line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Invited contact to Group %d.", conferencenum);
 }
 
-void cmd_join_group(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE])
+void cmd_conference_join(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE])
 {
     UNUSED_VAR(window);
     UNUSED_VAR(argc);
@@ -117,35 +119,102 @@ void cmd_join_group(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*ar
         return;
     }
 
-    const char *groupkey = Friends.list[self->num].group_invite.key;
-    uint16_t length = Friends.list[self->num].group_invite.length;
-    uint8_t type = Friends.list[self->num].group_invite.type;
+    const char *conferencekey = Friends.list[self->num].conference_invite.key;
+    uint16_t length = Friends.list[self->num].conference_invite.length;
+    uint8_t type = Friends.list[self->num].conference_invite.type;
 
-    if (!Friends.list[self->num].group_invite.pending) {
-        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "No pending group chat invite.");
+    if (!Friends.list[self->num].conference_invite.pending) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "No pending conference chat invite.");
         return;
     }
 
     if (type != TOX_CONFERENCE_TYPE_TEXT) {
-        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Toxic does not support audio groups.");
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Toxic does not support audio conferences.");
         return;
     }
 
     Tox_Err_Conference_Join err;
 
-    uint32_t groupnum = tox_conference_join(m, self->num, (const uint8_t *) groupkey, length, &err);
+    uint32_t conferencenum = tox_conference_join(m, self->num, (const uint8_t *) conferencekey, length, &err);
 
     if (err != TOX_ERR_CONFERENCE_JOIN_OK) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Group chat instance failed to initialize (error %d)", err);
         return;
     }
 
-    if (init_groupchat_win(m, groupnum, type, NULL, 0) == -1) {
+    if (init_conference_win(m, conferencenum, type, NULL, 0) == -1) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Group chat window failed to initialize.");
-        tox_conference_delete(m, groupnum, NULL);
+        tox_conference_delete(m, conferencenum, NULL);
         return;
     }
 
+}
+
+void cmd_group_accept(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE])
+{
+    if (get_num_active_windows() >= MAX_WINDOWS_NUM) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, RED, " * Warning: Too many windows are open.");
+        return;
+    }
+
+    if (Friends.list[self->num].group_invite.length == 0) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "No pending group invite");
+        return;
+    }
+
+    const char *passwd = NULL;
+    uint16_t passwd_len = 0;
+
+    if (argc > 0) {
+        passwd = argv[1];
+        passwd_len = strlen(passwd);
+    }
+
+    TOX_ERR_GROUP_INVITE_ACCEPT err;
+    uint32_t groupnumber = tox_group_invite_accept(m, Friends.list[self->num].group_invite.data,
+                           Friends.list[self->num].group_invite.length,
+                           (uint8_t *) passwd, passwd_len, &err);
+
+    if (err != TOX_ERR_GROUP_INVITE_ACCEPT_OK) {
+        if (err == TOX_ERR_GROUP_INVITE_ACCEPT_TOO_LONG) {
+            line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Failed to joing group: Password too long.");
+        } else {
+            line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Failed to joing group (error %d).", err);
+        }
+
+        return;
+    }
+
+    if (init_groupchat_win(m, groupnumber, NULL, 0) == -1) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Group chat window failed to initialize.");
+        tox_group_leave(m, groupnumber, NULL, 0, NULL);
+        return;
+    }
+}
+
+void cmd_group_invite(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE])
+{
+    if (argc < 1) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Group number required.");
+        return;
+    }
+
+    int groupnum = atoi(argv[1]);
+
+
+    if (groupnum == 0 && strcmp(argv[1], "0")) {    /* atoi returns 0 value on invalid input */
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Invalid group number.");
+        return;
+    }
+
+    TOX_ERR_GROUP_INVITE_FRIEND err;
+
+    if (!tox_group_invite_friend(m, groupnum, self->num, &err)) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Failed to invite contact to group (error %d).", err);
+        return;
+    }
+
+    line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Invited contact to Group %d.", groupnum);
 }
 
 void cmd_savefile(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE])

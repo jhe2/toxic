@@ -1,7 +1,7 @@
 /*  groupchat.h
  *
  *
- *  Copyright (C) 2014 Toxic All Rights Reserved.
+ *  Copyright (C) 2020 Toxic All Rights Reserved.
  *
  *  This file is part of Toxic.
  *
@@ -31,34 +31,37 @@
 #define MAX_GROUPCHAT_NUM MAX_WINDOWS_NUM - 2
 #define GROUP_EVENT_WAIT 3
 
-typedef struct GroupPeer {
+struct GroupPeer {
     bool       active;
     char       name[TOX_MAX_NAME_LENGTH];
     size_t     name_length;
-    uint32_t   peernumber;
-} GroupPeer;
+    uint32_t   peer_id;
+    uint8_t    public_key[TOX_GROUP_PEER_PUBLIC_KEY_SIZE];
+    TOX_USER_STATUS status;
+    TOX_GROUP_ROLE  role;
+    uint64_t   last_active;
+};
 
 typedef struct {
-    int chatwin;
-    bool active;
-    uint8_t type;
-    int side_pos;    /* current position of the sidebar - used for scrolling up and down */
-    time_t start_time;
-
-    GroupPeer *peer_list;
-    uint32_t max_idx;
-
-    char *name_list;
-    uint32_t num_peers;
-
+    struct GroupPeer *peer_list;
+    char       *name_list;    /* List of peer names, needed for tab completion */
+    uint32_t   num_peers;     /* Number of peers in the chat/name_list array */
+    uint32_t   max_idx;       /* Maximum peer list index - 1 */
+    uint32_t   groupnumber;
+    int        chatwin;
+    bool       active;
+    uint64_t   time_connected;    /* The time we successfully connected to the group */
+    int        side_pos;     /* current position of the sidebar - used for scrolling up and down */
 } GroupChat;
 
-/* Frees all Toxic associated data structures for a groupchat (does not call tox_conference_delete() ) */
-void free_groupchat(ToxWindow *self, uint32_t groupnum);
+void close_groupchat(ToxWindow *self, Tox *m, uint32_t groupnum);
+int init_groupchat_win(Tox *m, uint32_t groupnum, const char *groupname, size_t length);
+void set_nick_all_groups(Tox *m, const char *nick, size_t length);
+void set_status_all_groups(Tox *m, uint8_t status);
+int group_get_nick_peer_id(uint32_t groupnum, const char *nick, uint32_t *peer_id);
+int get_peer_index(uint32_t groupnum, uint32_t peer_id);
 
-int init_groupchat_win(Tox *m, uint32_t groupnum, uint8_t type, const char *title, size_t title_length);
-
-/* destroys and re-creates groupchat window with or without the peerlist */
+/* destroys and re-creates groupchat window */
 void redraw_groupchat_win(ToxWindow *self);
 
-#endif /* GROUPCHAT_H */
+#endif /* #define GROUPCHAT_H */

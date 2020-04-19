@@ -32,6 +32,7 @@
 #include "toxic_strings.h"
 #include "line_info.h"
 #include "notify.h"
+#include "conference.h"
 #include "groupchat.h"
 #include "settings.h"
 
@@ -280,7 +281,10 @@ bool input_handle(ToxWindow *self, wint_t key, int x, int mx_x)
        maybe convert entire function to if/else and make them all customizable keys? */
     if (!match) {
         if (key == user_settings->key_toggle_peerlist) {
-            if (self->is_groupchat) {
+            if (self->is_conference) {
+                self->show_peerlist ^= 1;
+                redraw_conference_win(self);
+            } else if (self->is_group) {
                 self->show_peerlist ^= 1;
                 redraw_groupchat_win(self);
             }

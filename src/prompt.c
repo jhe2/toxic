@@ -69,7 +69,7 @@ FriendRequests FrndRequests;
 #else
 #define AC_NUM_GLOB_COMMANDS_QRCODE 0
 #endif /* QRCODE */
-#define AC_NUM_GLOB_COMMANDS (17 + AC_NUM_GLOB_COMMANDS_AUDIO + AC_NUM_GLOB_COMMANDS_VIDEO + AC_NUM_GLOB_COMMANDS_PYTHON + AC_NUM_GLOB_COMMANDS_QRCODE)
+#define AC_NUM_GLOB_COMMANDS (19 + AC_NUM_GLOB_COMMANDS_AUDIO + AC_NUM_GLOB_COMMANDS_VIDEO + AC_NUM_GLOB_COMMANDS_PYTHON + AC_NUM_GLOB_COMMANDS_QRCODE)
 
 /* Array of global command names used for tab completion. */
 static const char glob_cmd_list[AC_NUM_GLOB_COMMANDS][MAX_CMDNAME_SIZE] = {
@@ -77,11 +77,13 @@ static const char glob_cmd_list[AC_NUM_GLOB_COMMANDS][MAX_CMDNAME_SIZE] = {
     { "/add"        },
     { "/avatar"     },
     { "/clear"      },
+    { "/conference" },
     { "/connect"    },
     { "/decline"    },
     { "/exit"       },
     { "/group"      },
     { "/help"       },
+    { "/join"       },
     { "/log"        },
     { "/myid"       },
 #ifdef QRCODE

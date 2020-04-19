@@ -77,6 +77,9 @@ time_t get_unix_time(void);
 /* Puts the current time in buf in the format of [HH:mm:ss] (not thread safe) */
 void get_time_str(char *buf, int bufsize);
 
+/* Converts seconds to string in format H hours, m minutes, s seconds */
+void get_elapsed_time_str_alt(char *buf, int bufsize, uint64_t secs);
+
 /* Converts seconds to string in format HH:mm:ss; truncates hours and minutes when necessary */
 void get_elapsed_time_str(char *buf, int bufsize, time_t secs);
 
@@ -136,8 +139,11 @@ void str_to_lower(char *str);
    Returns nick len on success, -1 on failure */
 size_t get_nick_truncate(Tox *m, char *buf, uint32_t friendnum);
 
+/* same as get_nick_truncate but for conferences */
+int get_conference_nick_truncate(Tox *m, char *buf, uint32_t peernum, uint32_t conferencenum);
+
 /* same as get_nick_truncate but for groupchats */
-int get_group_nick_truncate(Tox *m, char *buf, uint32_t peernum, uint32_t groupnum);
+int get_group_nick_truncate(Tox *m, char *buf, uint32_t peer_id, int groupnum);
 
 /* copies data to msg buffer.
    returns length of msg, which will be no larger than size-1 */

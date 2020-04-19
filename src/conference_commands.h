@@ -1,7 +1,7 @@
-/*  execute.h
+/*  conference_commands.h
  *
  *
- *  Copyright (C) 2014 Toxic All Rights Reserved.
+ *  Copyright (C) 2020 Toxic All Rights Reserved.
  *
  *  This file is part of Toxic.
  *
@@ -20,21 +20,12 @@
  *
  */
 
-#ifndef EXECUTE_H
-#define EXECUTE_H
+#ifndef CONFERENCE_COMMANDS_H
+#define CONFERENCE_COMMANDS_H
 
-#include "toxic.h"
 #include "windows.h"
+#include "toxic.h"
 
-#define MAX_NUM_ARGS 4     /* Includes command */
+void cmd_conference_set_title(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE]);
 
-enum {
-    GLOBAL_COMMAND_MODE,
-    CHAT_COMMAND_MODE,
-    CONFERENCE_COMMAND_MODE,
-    GROUPCHAT_COMMAND_MODE,
-};
-
-void execute(WINDOW *w, ToxWindow *self, Tox *m, const char *input, int mode);
-
-#endif /* EXECUTE_H */
+#endif /* CONFERENCE_COMMANDS_H */

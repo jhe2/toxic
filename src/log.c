@@ -75,7 +75,7 @@ static int get_log_path(char *dest, int destsize, char *name, const char *selfke
             other_id[KEY_IDENT_DIGITS * 2] = '\0';
             break;
 
-        case LOG_GROUP:
+        case LOG_CONFERENCE:
             strftime(other_id, sizeof(other_id), "%Y-%m-%d[%H:%M:%S]", get_time());
             path_len += strlen(other_id);
             break;

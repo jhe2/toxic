@@ -29,6 +29,7 @@
 #include "execute.h"
 #include "chat_commands.h"
 #include "global_commands.h"
+#include "conference_commands.h"
 #include "group_commands.h"
 #include "line_info.h"
 #include "misc_tools.h"
@@ -45,11 +46,13 @@ static struct cmd_func global_commands[] = {
     { "/add",       cmd_add           },
     { "/avatar",    cmd_avatar        },
     { "/clear",     cmd_clear         },
+    { "/conference", cmd_conference    },
     { "/connect",   cmd_connect       },
     { "/decline",   cmd_decline       },
     { "/exit",      cmd_quit          },
     { "/group",     cmd_groupchat     },
     { "/help",      cmd_prompt_help   },
+    { "/join",      cmd_join          },
     { "/log",       cmd_log           },
     { "/myid",      cmd_myid          },
 #ifdef QRCODE
@@ -68,7 +71,7 @@ static struct cmd_func global_commands[] = {
 #endif /* AUDIO */
 #ifdef VIDEO
     { "/lsvdev",    cmd_list_video_devices },
-    { "/svdev",    cmd_change_video_device },
+    { "/svdev",     cmd_change_video_device },
 #endif /* VIDEO */
 #ifdef PYTHON
     { "/run",       cmd_run           },
@@ -77,28 +80,30 @@ static struct cmd_func global_commands[] = {
 };
 
 static struct cmd_func chat_commands[] = {
-    { "/cancel",    cmd_cancelfile  },
-    { "/invite",    cmd_groupinvite },
-    { "/join",      cmd_join_group  },
-    { "/savefile",  cmd_savefile    },
-    { "/sendfile",  cmd_sendfile    },
+    { "/cancel",    cmd_cancelfile        },
+    { "/cinvite",   cmd_conference_invite },
+    { "/cjoin",     cmd_conference_join   },
+    { "/gaccept",   cmd_group_accept      },
+    { "/invite",    cmd_group_invite      },
+    { "/savefile",  cmd_savefile          },
+    { "/sendfile",  cmd_sendfile          },
 #ifdef AUDIO
-    { "/call",      cmd_call        },
-    { "/answer",    cmd_answer      },
-    { "/reject",    cmd_reject      },
-    { "/hangup",    cmd_hangup      },
-    { "/mute",      cmd_mute        },
-    { "/sense",     cmd_sense       },
-    { "/bitrate",   cmd_bitrate     },
+    { "/call",      cmd_call              },
+    { "/answer",    cmd_answer            },
+    { "/reject",    cmd_reject            },
+    { "/hangup",    cmd_hangup            },
+    { "/mute",      cmd_mute              },
+    { "/sense",     cmd_sense             },
+    { "/bitrate",   cmd_bitrate           },
 #endif /* AUDIO */
 #ifdef VIDEO
-    { "/video",     cmd_video       },
+    { "/video",     cmd_video             },
 #endif /* VIDEO */
-    { NULL,         NULL            },
+    { NULL,         NULL                  },
 };
 
-static struct cmd_func group_commands[] = {
-    { "/title",     cmd_set_title   },
+static struct cmd_func conference_commands[] = {
+    { "/title",     cmd_conference_set_title   },
 
 #ifdef AUDIO
     { "/mute",      cmd_mute        },
@@ -107,18 +112,55 @@ static struct cmd_func group_commands[] = {
     { NULL,         NULL            },
 };
 
+static struct cmd_func groupchat_commands[] = {
+    { "/ban",       cmd_ban            },
+    { "/chatid",    cmd_chatid         },
+    { "/ignore",    cmd_ignore         },
+    { "/kick",      cmd_kick           },
+    { "/mod",       cmd_mod            },
+    { "/mykey",     cmd_mykey          },
+    { "/passwd",    cmd_set_passwd     },
+    { "/peerlimit", cmd_set_peerlimit  },
+    { "/privacy",   cmd_set_privacy    },
+    { "/rejoin",    cmd_rejoin         },
+    { "/silence",   cmd_silence        },
+    { "/topic",     cmd_set_topic      },
+    { "/unban",     cmd_unban          },
+    { "/unignore",  cmd_unignore       },
+    { "/unmod",     cmd_unmod          },
+    { "/unsilence", cmd_unsilence      },
+    { "/whois",     cmd_whois          },
+#ifdef AUDIO
+    { "/mute",      cmd_mute           },
+    { "/sense",     cmd_sense          },
+#endif /* AUDIO */
+    { NULL,         NULL               },
+};
 
 #ifdef PYTHON
-#define SPECIAL_COMMANDS 6
+#define NUM_SPECIAL_COMMANDS 19
 #else
-#define SPECIAL_COMMANDS 5
+#define NUM_SPECIAL_COMMANDS 18
 #endif /* PYTHON */
 
 /* Special commands are commands that only take one argument even if it contains spaces */
-static const char special_commands[SPECIAL_COMMANDS][MAX_CMDNAME_SIZE] = {
+static const char special_commands[NUM_SPECIAL_COMMANDS][MAX_CMDNAME_SIZE] = {
     "/avatar",
+    "/ban",
+    "/gaccept",
+    "/group",
+    "/ignore",
+    "/kick",
+    "/mod",
     "/nick",
     "/note",
+    "/passwd",
+    "/silence",
+    "/topic",
+    "/unignore",
+    "/unmod",
+    "/unsilence",
+    "/whois",
 #ifdef PYTHON
     "/run",
 #endif /* PYTHON */
@@ -131,7 +173,7 @@ static bool is_special_command(const char *input)
 {
     const int s = char_find(0, input, ' ');
 
-    for (int i = 0; i < SPECIAL_COMMANDS; ++i) {
+    for (int i = 0; i < NUM_SPECIAL_COMMANDS; ++i) {
         if (strncmp(input, special_commands[i], s) == 0) {
             return true;
         }
@@ -239,19 +281,29 @@ void execute(WINDOW *w, ToxWindow *self, Tox *m, const char *input, int mode)
      * Note: Global commands must come last in case of duplicate command names
      */
     switch (mode) {
-        case CHAT_COMMAND_MODE:
+        case CHAT_COMMAND_MODE: {
             if (do_command(w, self, m, num_args, chat_commands, args) == 0) {
                 return;
             }
 
             break;
+        }
 
-        case GROUPCHAT_COMMAND_MODE:
-            if (do_command(w, self, m, num_args, group_commands, args) == 0) {
+        case CONFERENCE_COMMAND_MODE: {
+            if (do_command(w, self, m, num_args, conference_commands, args) == 0) {
                 return;
             }
 
             break;
+        }
+
+        case GROUPCHAT_COMMAND_MODE: {
+            if (do_command(w, self, m, num_args, groupchat_commands, args) == 0) {
+                return;
+            }
+
+            break;
+        }
     }
 
     if (do_command(w, self, m, num_args, global_commands, args) == 0) {

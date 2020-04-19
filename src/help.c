@@ -168,16 +168,16 @@ static void help_draw_global(ToxWindow *self)
     wprintw(win, "  /add <addr> <msg>          : Add contact with optional message\n");
     wprintw(win, "  /accept <id>               : Accept friend request\n");
     wprintw(win, "  /avatar <path>             : Set an avatar (leave path empty to unset)\n");
-    wprintw(win, "  /decline <id>              : Decline friend request\n");
-    wprintw(win, "  /requests                  : List pending friend requests\n");
     wprintw(win, "  /connect <ip> <port> <key> : Manually connect to a DHT node\n");
+    wprintw(win, "  /decline <id>              : Decline friend request\n");
+    wprintw(win, "  /group <name>              : Create a group chat with the specificed name\n");
     wprintw(win, "  /status <type> <msg>       : Set status with optional note\n");
     wprintw(win, "  /note <msg>                : Set a personal note\n");
     wprintw(win, "  /nick <nick>               : Set your nickname\n");
     wprintw(win, "  /nospam <value>            : Change part of your Tox ID to stop spam\n");
     wprintw(win, "  /log <on> or <off>         : Enable/disable logging\n");
-    wprintw(win, "  /group <type>              : Create a group chat where type: text | audio\n");
     wprintw(win, "  /myid                      : Print your Tox ID\n");
+    wprintw(win, "  /requests                  : List pending friend requests\n");
 #ifdef QRCODE
 #ifdef QRPNG
     wprintw(win, "  /myqr <txt> or <png>       : Print your Tox ID's QR code to a file.\n");
@@ -291,6 +291,24 @@ static void help_draw_keys(ToxWindow *self)
     wnoutrefresh(win);
 }
 
+// static void help_draw_conference(ToxWindow *self)
+// {
+//     WINDOW *win = self->help->win;
+
+//     wmove(win, 1, 1);
+
+//     wattron(win, A_BOLD | COLOR_PAIR(RED));
+//     wprintw(win, "Conference commands:\n");
+//     wattroff(win, A_BOLD | COLOR_PAIR(RED));
+
+//     wprintw(win, "  /title <msg>               : Set group title (show current title if no msg)\n\n");
+
+//     help_draw_bottom_menu(win);
+
+//     box(win, ACS_VLINE, ACS_HLINE);
+//     wnoutrefresh(win);
+// }
+
 static void help_draw_group(ToxWindow *self)
 {
     WINDOW *win = self->help->win;
@@ -301,7 +319,32 @@ static void help_draw_group(ToxWindow *self)
     wprintw(win, "Group commands:\n");
     wattroff(win, A_BOLD | COLOR_PAIR(RED));
 
-    wprintw(win, "  /title <msg>               : Set group title (show current title if no msg)\n\n");
+    wprintw(win, "  /chatid                    : Print the group chat id to share with others\n");
+    wprintw(win, "  /mykey                     : Print your group public key\n");
+    wprintw(win, "  /ignore <nick>             : Ignore peer\n");
+    wprintw(win, "  /unignore <nick>           : Unignore peer \n");
+    wprintw(win, "  /rejoin                    : Rejoin the group\n");
+    wprintw(win, "  /topic <msg>               : Set group topic (show current topic if no msg)\n");
+    wprintw(win, "  /whisper <nick> <msg>      : Send private message to nick\n");
+    wprintw(win, "  /whois <nick>              : Display info about nick.\n");
+
+    wattron(win, A_BOLD);
+    wprintw(win, " Moderator commands:\n");
+    wattroff(win, A_BOLD);
+    wprintw(win, "  /kick <nick>               : Kick peer\n");
+    wprintw(win, "  /ban <nick>                : Ban peer (leave nick blank to see ban list)\n");
+    wprintw(win, "  /unban <Ban ID>            : Unban entry\n");
+    wprintw(win, "  /silence <nick>            : Silences peer for the entire group\n");
+    wprintw(win, "  /unsilence <nick>          : Unsilences peer\n");
+
+    wattron(win, A_BOLD);
+    wprintw(win, " Founder commands:\n");
+    wattroff(win, A_BOLD);
+    wprintw(win, "  /mod <nick>                : Promote peer to moderator\n");
+    wprintw(win, "  /unmod <nick>              : Demote moderator to normal user\n");
+    wprintw(win, "  /passwd <password>         : Set group password (leave blank to unset)\n");
+    wprintw(win, "  /peerlimit <num>           : Set group peer limit\n");
+    wprintw(win, "  /privacy <state>           : Set group privacy state: private|public\n");
 
     help_draw_bottom_menu(win);
 
@@ -387,7 +430,7 @@ void help_onKey(ToxWindow *self, wint_t key)
             break;
 
         case 'r':
-            help_init_window(self, 6, 80);
+            help_init_window(self, 25, 80);
             self->help->type = HELP_GROUP;
             break;
 

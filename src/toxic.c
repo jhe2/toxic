@@ -52,7 +52,7 @@
 #include "friendlist.h"
 #include "prompt.h"
 #include "misc_tools.h"
-#include "groupchat.h"
+#include "conference.h"
 #include "file_transfers.h"
 #include "line_info.h"
 #include "settings.h"
@@ -64,6 +64,7 @@
 #include "term_mplex.h"
 #include "name_lookup.h"
 #include "bootstrap.h"
+#include "groupchat.h"
 
 #ifdef X11
 #include "xtra.h"
@@ -355,41 +356,53 @@ static void load_friendlist(Tox *m)
     sort_friendlist_index();
 }
 
+static void load_groups(Tox *m)
+{
+    size_t i;
+    size_t numgroups = tox_group_get_number_groups(m);
+
+    for (i = 0; i < numgroups; ++i) {
+        if (init_groupchat_win(m, i, NULL, 0) != 0) {
+            tox_group_leave(m, i, NULL, 0, NULL);
+        }
+    }
+}
+
 static void load_conferences(Tox *m)
 {
     size_t num_chats = tox_conference_get_chatlist_size(m);
 
     if (num_chats == 0) {
-        return;
+        return;        
     }
 
     uint32_t chatlist[num_chats];
     tox_conference_get_chatlist(m, chatlist);
 
     for (size_t i = 0; i < num_chats; ++i) {
-        uint32_t groupnum = chatlist[i];
+        uint32_t conferencenum = chatlist[i];
 
         if (get_num_active_windows() >= MAX_WINDOWS_NUM) {
-            tox_conference_delete(m, groupnum, NULL);
+            tox_conference_delete(m, conferencenum, NULL);
             continue;
         }
 
         Tox_Err_Conference_Get_Type err;
-        Tox_Conference_Type type = tox_conference_get_type(m, groupnum, &err);
+        Tox_Conference_Type type = tox_conference_get_type(m, conferencenum, &err);
 
         if (err != TOX_ERR_CONFERENCE_GET_TYPE_OK) {
-            tox_conference_delete(m, groupnum, NULL);
+            tox_conference_delete(m, conferencenum, NULL);
             continue;
         }
 
         Tox_Err_Conference_Title t_err;
-        size_t length = tox_conference_get_title_size(m, groupnum, &t_err);
+        size_t length = tox_conference_get_title_size(m, conferencenum, &t_err);
         uint8_t title[MAX_STR_SIZE];
 
         if (t_err != TOX_ERR_CONFERENCE_TITLE_OK || length >= sizeof(title)) {
             length = 0;
         } else {
-            tox_conference_get_title(m, groupnum, title, &t_err);
+            tox_conference_get_title(m, conferencenum, title, &t_err);
 
             if (t_err != TOX_ERR_CONFERENCE_TITLE_OK) {
                 length = 0;
@@ -398,8 +411,8 @@ static void load_conferences(Tox *m)
 
         title[length] = 0;
 
-        if (init_groupchat_win(m, groupnum, type, (const char *) title, length) == -1) {
-            tox_conference_delete(m, groupnum, NULL);
+        if (init_conference_win(m, conferencenum, type, (const char *) title, length) == -1) {
+            tox_conference_delete(m, conferencenum, NULL);
             continue;
         }
     }
@@ -657,6 +670,21 @@ static void init_tox_callbacks(Tox *m)
     tox_callback_file_chunk_request(m, on_file_chunk_request);
     tox_callback_file_recv_control(m, on_file_recv_control);
     tox_callback_file_recv_chunk(m, on_file_recv_chunk);
+
+    tox_callback_group_invite(m, on_group_invite, NULL);
+    tox_callback_group_message(m, on_group_message, NULL);
+    tox_callback_group_private_message(m, on_group_private_message, NULL);
+    tox_callback_group_peer_join(m, on_group_peer_join, NULL);
+    tox_callback_group_peer_exit(m, on_group_peer_exit, NULL);
+    tox_callback_group_peer_name(m, on_group_nick_change, NULL);
+    tox_callback_group_peer_status(m, on_group_status_change, NULL);
+    tox_callback_group_topic(m, on_group_topic_change, NULL);
+    tox_callback_group_peer_limit(m, on_group_peer_limit, NULL);
+    tox_callback_group_privacy_state(m, on_group_privacy_state, NULL);
+    tox_callback_group_password(m, on_group_password, NULL);
+    tox_callback_group_self_join(m, on_group_self_join, NULL);
+    tox_callback_group_join_fail(m, on_group_rejected, NULL);
+    tox_callback_group_moderation(m, on_group_moderation, NULL);
 }
 
 static void init_tox_options(struct Tox_Options *tox_opts)
@@ -1381,6 +1409,7 @@ int main(int argc, char **argv)
 
     prompt = init_windows(m);
     prompt_init_statusbar(prompt, m, !datafile_exists);
+    load_groups(m);
     load_conferences(m);
 
     /* thread for ncurses stuff */
