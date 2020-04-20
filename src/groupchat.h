@@ -54,7 +54,7 @@ typedef struct {
     int        side_pos;     /* current position of the sidebar - used for scrolling up and down */
 } GroupChat;
 
-void close_groupchat(ToxWindow *self, Tox *m, uint32_t groupnum);
+void exit_groupchat(ToxWindow *self, Tox *m, uint32_t groupnum, const char *partmessage, size_t length);
 int init_groupchat_win(Tox *m, uint32_t groupnum, const char *groupname, size_t length);
 void set_nick_all_groups(Tox *m, const char *nick, size_t length);
 void set_status_all_groups(Tox *m, uint8_t status);

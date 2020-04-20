@@ -164,7 +164,7 @@ static void kill_groupchat_window(ToxWindow *self)
 }
 
 /* Closes groupchat window and cleans up. */
-void close_groupchat(ToxWindow *self, Tox *m, uint32_t groupnum)
+static void close_groupchat(ToxWindow *self, Tox *m, uint32_t groupnum)
 {
     GroupChat *chat = &groupchats[groupnum];
 
@@ -188,7 +188,7 @@ void close_groupchat(ToxWindow *self, Tox *m, uint32_t groupnum)
     kill_groupchat_window(self);
 }
 
-static void exit_groupchat(ToxWindow *self, Tox *m, uint32_t groupnum, const char *partmessage, size_t length)
+void exit_groupchat(ToxWindow *self, Tox *m, uint32_t groupnum, const char *partmessage, size_t length)
 {
     if (length > TOX_GROUP_MAX_PART_LENGTH) {
         length = TOX_GROUP_MAX_PART_LENGTH;
@@ -260,7 +260,6 @@ int init_groupchat_win(Tox *m, uint32_t groupnum, const char *groupname, size_t 
                 close_groupchat(self, m, groupnum);
                 return -1;
             }
-
 
             groupchat_onGroupPeerJoin(self, m, groupnum, peer_id);
 
@@ -356,10 +355,6 @@ static void sort_peerlist(uint32_t groupnum)
     }
 
     qsort(chat->peer_list, chat->max_idx, sizeof(struct GroupPeer), peer_sort_cmp);
-
-    for (int i = 0; i < chat->max_idx; ++i) {
-        fprintf(stderr, "%s\n", chat->peer_list[i].name);
-    }
 }
 
 /* Gets the peer_id associated with nick.
@@ -373,9 +368,7 @@ int group_get_nick_peer_id(uint32_t groupnum, const char *nick, uint32_t *peer_i
         return -1;
     }
 
-    uint32_t i;
-
-    for (i = 0; i < chat->max_idx; ++i) {
+    for (size_t i = 0; i < chat->max_idx; ++i) {
         if (chat->peer_list[i].active) {
             if (strcmp(nick, chat->peer_list[i].name) == 0) {
                 *peer_id = chat->peer_list[i].peer_id;
@@ -414,9 +407,12 @@ int get_peer_index(uint32_t groupnum, uint32_t peer_id)
     }
 
     uint32_t i;
-
     for (i = 0; i < chat->max_idx; ++i) {
-        if (chat->peer_list[i].active && chat->peer_list[i].peer_id == peer_id) {
+        if (!chat->peer_list[i].active) {
+            continue;
+        }
+
+        if (chat->peer_list[i].peer_id == peer_id) {
             return i;
         }
     }
@@ -1102,8 +1098,8 @@ static void send_group_prvt_message(ToxWindow *self, Tox *m, uint32_t groupnum, 
     ChatContext *ctx = self->chatwin;
     GroupChat *chat = &groupchats[groupnum];
 
-    if (data == NULL || data_len == 0) {
-        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, RED, "Message is empty.");
+    if (data == NULL) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, RED, "Invalid comand.");
         return;
     }
 
@@ -1117,7 +1113,7 @@ static void send_group_prvt_message(ToxWindow *self, Tox *m, uint32_t groupnum, 
             continue;
         }
 
-        if (data_len <= chat->peer_list[i].name_length) {
+        if (data_len < chat->peer_list[i].name_length) {
             continue;
         }
 
@@ -1138,6 +1134,7 @@ static void send_group_prvt_message(ToxWindow *self, Tox *m, uint32_t groupnum, 
     int msg_len = ((int) data_len) - ((int) name_length) - 1;
 
     if (msg_len <= 0) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Message is empty.");
         return;
     }
 
