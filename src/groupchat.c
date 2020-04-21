@@ -780,9 +780,11 @@ static void groupchat_onGroupPeerJoin(ToxWindow *self, Tox *m, uint32_t groupnum
     }
 }
 
-static void groupchat_onGroupPeerExit(ToxWindow *self, Tox *m, uint32_t groupnum, uint32_t peer_id,
-                                      const char *partmessage, size_t len)
+static void groupchat_onGroupPeerExit(ToxWindow *self, Tox *m, uint32_t groupnum, uint32_t peer_id, const char *name,
+                                      size_t name_len, const char *partmessage, size_t len)
 {
+    UNUSED_VAR(name_len);
+
     if (self->num != groupnum || !groupnumber_valid(groupnum)) {
         return;
     }
@@ -792,9 +794,6 @@ static void groupchat_onGroupPeerExit(ToxWindow *self, Tox *m, uint32_t groupnum
     if (!chat) {
         return;
     }
-
-    char name[TOX_MAX_NAME_LENGTH];
-    get_group_nick_truncate(m, name, peer_id, groupnum);
 
     char timefrmt[TIME_STR_SIZE];
     get_time_str(timefrmt, sizeof(timefrmt));

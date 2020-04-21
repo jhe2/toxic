@@ -375,9 +375,12 @@ void on_group_peer_join(Tox *m, uint32_t groupnumber, uint32_t peer_id, void *us
     }
 }
 
-void on_group_peer_exit(Tox *m, uint32_t groupnumber, uint32_t peer_id, const uint8_t *partmsg, size_t length,
-                        void *userdata)
+void on_group_peer_exit(Tox *m, uint32_t groupnumber, uint32_t peer_id, const uint8_t *nick, size_t nick_len,
+                        const uint8_t *partmsg, size_t length, void *userdata)
 {
+    char toxic_nick[TOXIC_MAX_NAME_LENGTH + 1];
+    nick_len = copy_tox_str(toxic_nick, sizeof(toxic_nick), (const char *) nick, nick_len);
+
     char msg[MAX_STR_SIZE + 1];
 
     if (length == 0 || !partmsg) {
@@ -389,7 +392,7 @@ void on_group_peer_exit(Tox *m, uint32_t groupnumber, uint32_t peer_id, const ui
 
     for (size_t i = 0; i < MAX_WINDOWS_NUM; ++i) {
         if (windows[i] != NULL && windows[i]->onGroupPeerExit != NULL) {
-            windows[i]->onGroupPeerExit(windows[i], m, groupnumber, peer_id, msg, length);
+            windows[i]->onGroupPeerExit(windows[i], m, groupnumber, peer_id, toxic_nick, nick_len, msg, length);
         }
     }
 }
