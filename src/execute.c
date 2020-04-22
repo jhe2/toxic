@@ -113,7 +113,6 @@ static struct cmd_func conference_commands[] = {
 };
 
 static struct cmd_func groupchat_commands[] = {
-    { "/ban",       cmd_ban            },
     { "/chatid",    cmd_chatid         },
     { "/ignore",    cmd_ignore         },
     { "/kick",      cmd_kick           },
@@ -125,7 +124,6 @@ static struct cmd_func groupchat_commands[] = {
     { "/rejoin",    cmd_rejoin         },
     { "/silence",   cmd_silence        },
     { "/topic",     cmd_set_topic      },
-    { "/unban",     cmd_unban          },
     { "/unignore",  cmd_unignore       },
     { "/unmod",     cmd_unmod          },
     { "/unsilence", cmd_unsilence      },
@@ -138,15 +136,14 @@ static struct cmd_func groupchat_commands[] = {
 };
 
 #ifdef PYTHON
-#define NUM_SPECIAL_COMMANDS 19
-#else
 #define NUM_SPECIAL_COMMANDS 18
+#else
+#define NUM_SPECIAL_COMMANDS 17
 #endif /* PYTHON */
 
 /* Special commands are commands that only take one argument even if it contains spaces */
 static const char special_commands[NUM_SPECIAL_COMMANDS][MAX_CMDNAME_SIZE] = {
     "/avatar",
-    "/ban",
     "/gaccept",
     "/group",
     "/ignore",

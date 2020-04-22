@@ -332,8 +332,6 @@ static void help_draw_group(ToxWindow *self)
     wprintw(win, " Moderator commands:\n");
     wattroff(win, A_BOLD);
     wprintw(win, "  /kick <nick>               : Kick peer\n");
-    wprintw(win, "  /ban <nick>                : Ban peer (leave nick blank to see ban list)\n");
-    wprintw(win, "  /unban <Ban ID>            : Unban entry\n");
     wprintw(win, "  /silence <nick>            : Silences peer for the entire group\n");
     wprintw(win, "  /unsilence <nick>          : Unsilences peer\n");
 
@@ -430,7 +428,7 @@ void help_onKey(ToxWindow *self, wint_t key)
             break;
 
         case 'r':
-            help_init_window(self, 25, 80);
+            help_init_window(self, 23, 80);
             self->help->type = HELP_GROUP;
             break;
 
