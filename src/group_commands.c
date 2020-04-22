@@ -85,20 +85,32 @@ void cmd_ignore(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[
 
 static void cmd_kickban_helper(ToxWindow *self, Tox *m, const char *nick, bool set_ban)
 {
-    uint32_t peer_id;
+    uint32_t target_peer_id;
 
-    if (group_get_nick_peer_id(self->num, nick, &peer_id) == -1) {
+    if (group_get_nick_peer_id(self->num, nick, &target_peer_id) == -1) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Invalid peer name '%s'.", nick);
         return;
     }
 
+    TOX_ERR_GROUP_SELF_QUERY s_err;
+    uint32_t self_peer_id = tox_group_self_get_peer_id(m, self->num, &s_err);
+
+    if (s_err != TOX_ERR_GROUP_SELF_QUERY_OK) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Failed to fetch self peer_id.");
+        return;
+    }
+
     const char *type_str = set_ban ? "ban" : "kick";
+    TOX_GROUP_MOD_EVENT type = set_ban ? TOX_GROUP_MOD_EVENT_BAN : TOX_GROUP_MOD_EVENT_KICK;
 
     TOX_ERR_GROUP_MOD_REMOVE_PEER err;
-    tox_group_mod_remove_peer(m, self->num, peer_id, set_ban, &err);
+    tox_group_mod_remove_peer(m, self->num, target_peer_id, set_ban, &err);
 
     switch (err) {
         case TOX_ERR_GROUP_MOD_REMOVE_PEER_OK: {
+            const char *msg = set_ban ? "Banned" : "Kicked";
+            groupchat_onGroupPeerExit(self, m, self->num, target_peer_id, nick, strlen(nick), msg, strlen(msg));
+            groupchat_onGroupModeration(self, m, self->num, self_peer_id, target_peer_id, type);
             return;
         }
 
@@ -240,18 +252,27 @@ void cmd_mod(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX
     }
 
     const char *nick = argv[1];
-    uint32_t peer_id;
+    uint32_t target_peer_id;
 
-    if (group_get_nick_peer_id(self->num, nick, &peer_id) == -1) {
+    if (group_get_nick_peer_id(self->num, nick, &target_peer_id) == -1) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Invalid peer name '%s'.", nick);
         return;
     }
 
+    TOX_ERR_GROUP_SELF_QUERY s_err;
+    uint32_t self_peer_id = tox_group_self_get_peer_id(m, self->num, &s_err);
+
+    if (s_err != TOX_ERR_GROUP_SELF_QUERY_OK) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Failed to fetch self peer_id.");
+        return;
+    }
+
     TOX_ERR_GROUP_MOD_SET_ROLE err;
-    tox_group_mod_set_role(m, self->num, peer_id, TOX_GROUP_ROLE_MODERATOR, &err);
+    tox_group_mod_set_role(m, self->num, target_peer_id, TOX_GROUP_ROLE_MODERATOR, &err);
 
     switch (err) {
         case TOX_ERR_GROUP_MOD_SET_ROLE_OK: {
+            groupchat_onGroupModeration(self, m, self->num, self_peer_id, target_peer_id, TOX_GROUP_MOD_EVENT_MODERATOR);
             return;
         }
 
@@ -280,23 +301,32 @@ void cmd_unmod(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[M
     }
 
     const char *nick = argv[1];
-    uint32_t peer_id;
+    uint32_t target_peer_id;
 
-    if (group_get_nick_peer_id(self->num, nick, &peer_id) == -1) {
+    if (group_get_nick_peer_id(self->num, nick, &target_peer_id) == -1) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Invalid peer name '%s'.", nick);
         return;
     }
 
-    if (tox_group_peer_get_role(m, self->num, peer_id, NULL) != TOX_GROUP_ROLE_MODERATOR) {
+    TOX_ERR_GROUP_SELF_QUERY s_err;
+    uint32_t self_peer_id = tox_group_self_get_peer_id(m, self->num, &s_err);
+
+    if (s_err != TOX_ERR_GROUP_SELF_QUERY_OK) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Failed to fetch self peer_id.");
+        return;
+    }
+
+    if (tox_group_peer_get_role(m, self->num, target_peer_id, NULL) != TOX_GROUP_ROLE_MODERATOR) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "%s is not a moderator", nick);
         return;
     }
 
     TOX_ERR_GROUP_MOD_SET_ROLE err;
-    tox_group_mod_set_role(m, self->num, peer_id, TOX_GROUP_ROLE_USER, &err);
+    tox_group_mod_set_role(m, self->num, target_peer_id, TOX_GROUP_ROLE_USER, &err);
 
     switch (err) {
         case TOX_ERR_GROUP_MOD_SET_ROLE_OK: {
+            groupchat_onGroupModeration(self, m, self->num, self_peer_id, target_peer_id, TOX_GROUP_MOD_EVENT_USER);
             return;
         }
 
@@ -481,18 +511,27 @@ void cmd_silence(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)
     }
 
     const char *nick = argv[1];
-    uint32_t peer_id;
+    uint32_t target_peer_id;
 
-    if (group_get_nick_peer_id(self->num, nick, &peer_id) == -1) {
+    if (group_get_nick_peer_id(self->num, nick, &target_peer_id) == -1) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Invalid peer name '%s'.", nick);
         return;
     }
 
+    TOX_ERR_GROUP_SELF_QUERY s_err;
+    uint32_t self_peer_id = tox_group_self_get_peer_id(m, self->num, &s_err);
+
+    if (s_err != TOX_ERR_GROUP_SELF_QUERY_OK) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Failed to fetch self peer_id.");
+        return;
+    }
+
     TOX_ERR_GROUP_MOD_SET_ROLE err;
-    tox_group_mod_set_role(m, self->num, peer_id, TOX_GROUP_ROLE_OBSERVER, &err);
+    tox_group_mod_set_role(m, self->num, target_peer_id, TOX_GROUP_ROLE_OBSERVER, &err);
 
     switch (err) {
         case TOX_ERR_GROUP_MOD_SET_ROLE_OK: {
+            groupchat_onGroupModeration(self, m, self->num, self_peer_id, target_peer_id, TOX_GROUP_MOD_EVENT_OBSERVER);
             return;
         }
 
@@ -516,23 +555,32 @@ void cmd_unsilence(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*arg
     }
 
     const char *nick = argv[1];
-    uint32_t peer_id;
+    uint32_t target_peer_id;
 
-    if (group_get_nick_peer_id(self->num, nick, &peer_id) == -1) {
+    if (group_get_nick_peer_id(self->num, nick, &target_peer_id) == -1) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Invalid peer name '%s'.", nick);
         return;
     }
 
-    if (tox_group_peer_get_role(m, self->num, peer_id, NULL) != TOX_GROUP_ROLE_OBSERVER) {
+    if (tox_group_peer_get_role(m, self->num, target_peer_id, NULL) != TOX_GROUP_ROLE_OBSERVER) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "%s is not silenced.", nick);
         return;
     }
 
+    TOX_ERR_GROUP_SELF_QUERY s_err;
+    uint32_t self_peer_id = tox_group_self_get_peer_id(m, self->num, &s_err);
+
+    if (s_err != TOX_ERR_GROUP_SELF_QUERY_OK) {
+        line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,  "Failed to fetch self peer_id.");
+        return;
+    }
+
     TOX_ERR_GROUP_MOD_SET_ROLE err;
-    tox_group_mod_set_role(m, self->num, peer_id, TOX_GROUP_ROLE_USER, &err);
+    tox_group_mod_set_role(m, self->num, target_peer_id, TOX_GROUP_ROLE_USER, &err);
 
     switch (err) {
         case TOX_ERR_GROUP_MOD_SET_ROLE_OK: {
+            groupchat_onGroupModeration(self, m, self->num, self_peer_id, target_peer_id, TOX_GROUP_MOD_EVENT_USER);
             return;
         }
 

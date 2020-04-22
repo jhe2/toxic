@@ -60,6 +60,10 @@ void set_nick_all_groups(Tox *m, const char *nick, size_t length);
 void set_status_all_groups(Tox *m, uint8_t status);
 int group_get_nick_peer_id(uint32_t groupnum, const char *nick, uint32_t *peer_id);
 int get_peer_index(uint32_t groupnum, uint32_t peer_id);
+void groupchat_onGroupPeerExit(ToxWindow *self, Tox *m, uint32_t groupnum, uint32_t peer_id, const char *name,
+                                      size_t name_len, const char *partmessage, size_t len);
+void groupchat_onGroupModeration(ToxWindow *self, Tox *m, uint32_t groupnum, uint32_t src_peer_id,
+                                 uint32_t tgt_peer_id, TOX_GROUP_MOD_EVENT type);
 
 /* destroys and re-creates groupchat window */
 void redraw_groupchat_win(ToxWindow *self);
