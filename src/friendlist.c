@@ -618,7 +618,8 @@ static void friendlist_onConferenceInvite(ToxWindow *self, Tox *m, int32_t num, 
     sound_notify(prompt, notif_error, NT_WNDALERT_1, NULL);
 }
 
-static void friendlist_onGroupInvite(ToxWindow *self, Tox *m, uint32_t num, const char *data, size_t length)
+static void friendlist_onGroupInvite(ToxWindow *self, Tox *m, uint32_t num, const char *data, size_t length,
+                                     const char *group_name, size_t group_name_length)
 {
     UNUSED_VAR(self);
     UNUSED_VAR(data);

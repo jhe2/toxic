@@ -138,7 +138,7 @@ struct ToxWindow {
     void(*onReadReceipt)(ToxWindow *, Tox *, uint32_t, uint32_t);
 
 
-    void(*onGroupInvite)(ToxWindow *, Tox *, uint32_t, const char *, size_t);
+    void(*onGroupInvite)(ToxWindow *, Tox *, uint32_t, const char *, size_t, const char *, size_t);
     void(*onGroupMessage)(ToxWindow *, Tox *, uint32_t, uint32_t, TOX_MESSAGE_TYPE, const char *, size_t);
     void(*onGroupPrivateMessage)(ToxWindow *, Tox *, uint32_t, uint32_t, const char *, size_t);
     void(*onGroupPeerJoin)(ToxWindow *, Tox *, uint32_t, uint32_t);

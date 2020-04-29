@@ -322,11 +322,15 @@ void on_friend_read_receipt(Tox *m, uint32_t friendnumber, uint32_t receipt, voi
     }
 }
 
-void on_group_invite(Tox *m, uint32_t friendnumber, const uint8_t *invite_data, size_t length, void *userdata)
+void on_group_invite(Tox *m, uint32_t friendnumber, const uint8_t *invite_data, size_t length, const uint8_t *group_name,
+                     size_t group_name_length, void *userdata)
 {
+    char gname[MAX_STR_SIZE + 1];
+    group_name_length = copy_tox_str(gname, sizeof(gname), (const char *) group_name, group_name_length);
+
     for (size_t i = 0; i < MAX_WINDOWS_NUM; ++i) {
         if (windows[i] != NULL && windows[i]->onGroupInvite != NULL) {
-            windows[i]->onGroupInvite(windows[i], m, friendnumber, (char *) invite_data, length);
+            windows[i]->onGroupInvite(windows[i], m, friendnumber, (char *) invite_data, length, gname, group_name_length);
         }
     }
 }
@@ -344,7 +348,7 @@ void on_group_message(Tox *m, uint32_t groupnumber, uint32_t peer_id, TOX_MESSAG
     }
 }
 
-void on_group_private_message(Tox *m, uint32_t groupnumber, uint32_t peer_id, const uint8_t *message,
+void on_group_private_message(Tox *m, uint32_t groupnumber, uint32_t peer_id, TOX_MESSAGE_TYPE type, const uint8_t *message,
                               size_t length, void *userdata)
 {
     char msg[MAX_STR_SIZE + 1];

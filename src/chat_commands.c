@@ -170,10 +170,15 @@ void cmd_group_accept(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*
         passwd_len = strlen(passwd);
     }
 
+    size_t nick_len = tox_self_get_name_size(m);
+    char self_nick[TOX_MAX_NAME_LENGTH + 1];
+    tox_self_get_name(m, (uint8_t *) self_nick);
+    self_nick[nick_len] = '\0';
+
     TOX_ERR_GROUP_INVITE_ACCEPT err;
-    uint32_t groupnumber = tox_group_invite_accept(m, Friends.list[self->num].group_invite.data,
-                           Friends.list[self->num].group_invite.length,
-                           (uint8_t *) passwd, passwd_len, &err);
+    uint32_t groupnumber = tox_group_invite_accept(m, self->num, Friends.list[self->num].group_invite.data,
+                           Friends.list[self->num].group_invite.length, (const uint8_t *) self_nick, nick_len,
+                           (const uint8_t *) passwd, passwd_len, &err);
 
     if (err != TOX_ERR_GROUP_INVITE_ACCEPT_OK) {
         if (err == TOX_ERR_GROUP_INVITE_ACCEPT_TOO_LONG) {

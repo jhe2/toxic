@@ -714,9 +714,11 @@ static void chat_onConferenceInvite(ToxWindow *self, Tox *m, int32_t friendnumbe
     line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Type \"/join\" to join the chat.");
 }
 
-static void chat_onGroupInvite(ToxWindow *self, Tox *m, uint32_t friendnumber, const char *invite_data,
-                               size_t length)
+static void chat_onGroupInvite(ToxWindow *self, Tox *m, uint32_t friendnumber, const char *invite_data, size_t length,
+                               const char *group_name, size_t group_name_length)
 {
+    UNUSED_VAR(group_name_length);
+
     if (self->num != friendnumber) {
         return;
     }
@@ -740,7 +742,7 @@ static void chat_onGroupInvite(ToxWindow *self, Tox *m, uint32_t friendnumber, c
         box_silent_notify(self, NT_WNDALERT_2 | NT_NOFOCUS, &self->active_box, name, "invites you to join group chat");
     }
 
-    line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "%s has invited you to a group chat.", name);
+    line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "%s has invited you to join group chat \"%s\"", name, group_name);
     line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Type \"/gaccept\" to join the chat.");
 }
 

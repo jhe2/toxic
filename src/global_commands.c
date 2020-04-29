@@ -415,8 +415,14 @@ void cmd_groupchat(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*arg
         snprintf(name, sizeof(name), "%s", argv[1]);
     }
 
+    size_t nick_length = tox_self_get_name_size(m);
+    char self_nick[TOX_MAX_NAME_LENGTH + 1];
+    tox_self_get_name(m, (uint8_t *) self_nick);
+    self_nick[nick_length] = '\0';
+
     TOX_ERR_GROUP_NEW err;
-    uint32_t groupnum = tox_group_new(m, TOX_GROUP_PRIVACY_STATE_PUBLIC, (uint8_t *) name, len, &err);
+    uint32_t groupnum = tox_group_new(m, TOX_GROUP_PRIVACY_STATE_PUBLIC, (const uint8_t *) name, len,
+                                      (const uint8_t *) self_nick, nick_length, &err);
 
     if (err != TOX_ERR_GROUP_NEW_OK) {
         switch (err) {
@@ -498,8 +504,14 @@ void cmd_join(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MA
         passwd_len = strlen(passwd);
     }
 
+    size_t nick_length = tox_self_get_name_size(m);
+    char self_nick[TOX_MAX_NAME_LENGTH + 1];
+    tox_self_get_name(m, (uint8_t *) self_nick);
+    self_nick[nick_length] = '\0';
+
     TOX_ERR_GROUP_JOIN err;
-    uint32_t groupnum = tox_group_join(m, (uint8_t *) id_bin, (uint8_t *) passwd, passwd_len, &err);
+    uint32_t groupnum = tox_group_join(m, (uint8_t *) id_bin, (const uint8_t *) self_nick, nick_length,
+                                       (const uint8_t *) passwd, passwd_len, &err);
 
     if (err != TOX_ERR_GROUP_JOIN_OK) {
         if (err == TOX_ERR_GROUP_JOIN_TOO_LONG) {
