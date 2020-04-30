@@ -424,7 +424,7 @@ on_error:
 }
 
 /* same as get_nick_truncate but for groupchats */
-int get_group_nick_truncate(Tox *m, char *buf, uint32_t peer_id, int groupnum)
+size_t get_group_nick_truncate(Tox *m, char *buf, uint32_t peer_id, uint32_t groupnum)
 {
     TOX_ERR_GROUP_PEER_QUERY err;
     size_t len = tox_group_peer_get_name_size(m, groupnum, peer_id, &err);
@@ -443,6 +443,30 @@ int get_group_nick_truncate(Tox *m, char *buf, uint32_t peer_id, int groupnum)
 
     len = MIN(len, TOXIC_MAX_NAME_LENGTH - 1);
     buf[len] = '\0';
+    filter_str(buf, len);
+    return len;
+}
+
+/* same as get_group_nick_truncate() but for self. */
+size_t get_group_self_nick_truncate(Tox *m, char *buf, uint32_t groupnum)
+{
+    TOX_ERR_GROUP_SELF_QUERY err;
+    size_t len = tox_group_self_get_name_size(m, groupnum, &err);
+
+    if (err != TOX_ERR_GROUP_SELF_QUERY_OK) {
+        strcpy(buf, UNKNOWN_NAME);
+        len = strlen(UNKNOWN_NAME);
+    } else {
+        tox_group_self_get_name(m, groupnum, (uint8_t *) buf, &err);
+
+        if (err != TOX_ERR_GROUP_SELF_QUERY_OK) {
+            strcpy(buf, UNKNOWN_NAME);
+            len = strlen(UNKNOWN_NAME);
+        }
+    }
+
+    len = MIN(len, TOXIC_MAX_NAME_LENGTH - 1);
+    buf[len] = 0;
     filter_str(buf, len);
     return len;
 }

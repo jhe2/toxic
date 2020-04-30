@@ -143,7 +143,10 @@ size_t get_nick_truncate(Tox *m, char *buf, uint32_t friendnum);
 int get_conference_nick_truncate(Tox *m, char *buf, uint32_t peernum, uint32_t conferencenum);
 
 /* same as get_nick_truncate but for groupchats */
-int get_group_nick_truncate(Tox *m, char *buf, uint32_t peer_id, int groupnum);
+size_t get_group_nick_truncate(Tox *m, char *buf, uint32_t peer_id, uint32_t groupnum);
+
+/* same as get_group_nick_truncate() but for self. */
+size_t get_group_self_nick_truncate(Tox *m, char *buf, uint32_t groupnum);
 
 /* copies data to msg buffer.
    returns length of msg, which will be no larger than size-1 */
