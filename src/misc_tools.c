@@ -387,13 +387,16 @@ size_t get_nick_truncate(Tox *m, char *buf, uint32_t friendnum)
 
     len = MIN(len, TOXIC_MAX_NAME_LENGTH - 1);
     buf[len] = '\0';
+
     filter_str(buf, len);
+
     return len;
 
 on_error:
     strcpy(buf, UNKNOWN_NAME);
     len = strlen(UNKNOWN_NAME);
     buf[len] = '\0';
+
     return len;
 }
 
@@ -413,13 +416,16 @@ int get_conference_nick_truncate(Tox *m, char *buf, uint32_t peernum, uint32_t c
 
     len = MIN(len, TOXIC_MAX_NAME_LENGTH - 1);
     buf[len] = '\0';
+
     filter_str(buf, len);
+
     return len;
 
 on_error:
     strcpy(buf, UNKNOWN_NAME);
     len = strlen(UNKNOWN_NAME);
     buf[len] = '\0';
+
     return len;
 }
 
@@ -443,7 +449,9 @@ size_t get_group_nick_truncate(Tox *m, char *buf, uint32_t peer_id, uint32_t gro
 
     len = MIN(len, TOXIC_MAX_NAME_LENGTH - 1);
     buf[len] = '\0';
+
     filter_str(buf, len);
+
     return len;
 }
 
@@ -467,7 +475,9 @@ size_t get_group_self_nick_truncate(Tox *m, char *buf, uint32_t groupnum)
 
     len = MIN(len, TOXIC_MAX_NAME_LENGTH - 1);
     buf[len] = 0;
+
     filter_str(buf, len);
+
     return len;
 }
 
