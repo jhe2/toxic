@@ -70,6 +70,8 @@ static int max_conference_index = 0;
 extern struct user_settings *user_settings;
 extern struct Winthread Winthread;
 
+#define CONF_SIDEBAR_OFFSET 2    /* Offset for the peer number box at the top of the statusbar */
+
 #ifdef PYTHON
 #define AC_NUM_CONFERENCE_COMMANDS_PYTHON 1
 #else
@@ -551,7 +553,7 @@ static void conference_onKey(ToxWindow *self, Tox *m, wint_t key, bool ltr)
             sound_notify(self, notif_error, 0, NULL);
         }
     } else if (key == user_settings->key_peer_list_down) {    /* Scroll peerlist up and down one position */
-        const int L = y2 - CHATBOX_HEIGHT - SDBAR_OFST;
+        const int L = y2 - CHATBOX_HEIGHT - CONF_SIDEBAR_OFFSET;
 
         if (conferences[self->num].side_pos < (int64_t) conferences[self->num].num_peers - L) {
             ++conferences[self->num].side_pos;
@@ -642,7 +644,7 @@ static void conference_onDraw(ToxWindow *self, Tox *m)
         mvwaddch(ctx->sidebar, 1, 0, ACS_LTEE);
         mvwhline(ctx->sidebar, 1, 1, ACS_HLINE, SIDEBAR_WIDTH - 1);
 
-        int maxlines = y2 - SDBAR_OFST - CHATBOX_HEIGHT;
+        int maxlines = y2 - CONF_SIDEBAR_OFFSET - CHATBOX_HEIGHT;
         uint32_t i;
 
         for (i = 0; i < num_peers && i < maxlines; ++i) {

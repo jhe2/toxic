@@ -159,7 +159,7 @@ void on_friend_added(Tox *m, uint32_t friendnumber, bool sort)
     store_data(m, DATA_FILE);
 }
 
-void on_conference_message(Tox *m, uint32_t groupnumber, uint32_t peernumber, Tox_Message_Type type,
+void on_conference_message(Tox *m, uint32_t conferencenum, uint32_t peernumber, Tox_Message_Type type,
                            const uint8_t *message, size_t length, void *userdata)
 {
     UNUSED_VAR(userdata);
@@ -169,7 +169,7 @@ void on_conference_message(Tox *m, uint32_t groupnumber, uint32_t peernumber, To
 
     for (uint8_t i = 0; i < MAX_WINDOWS_NUM; ++i) {
         if (windows[i] != NULL && windows[i]->onConferenceMessage != NULL) {
-            windows[i]->onConferenceMessage(windows[i], m, groupnumber, peernumber, type, msg, length);
+            windows[i]->onConferenceMessage(windows[i], m, conferencenum, peernumber, type, msg, length);
         }
     }
 }
@@ -186,18 +186,18 @@ void on_conference_invite(Tox *m, uint32_t friendnumber, Tox_Conference_Type typ
     }
 }
 
-void on_conference_peer_list_changed(Tox *m, uint32_t groupnumber, void *userdata)
+void on_conference_peer_list_changed(Tox *m, uint32_t conferencenum, void *userdata)
 {
     UNUSED_VAR(userdata);
 
     for (uint8_t i = 0; i < MAX_WINDOWS_NUM; ++i) {
         if (windows[i] != NULL && windows[i]->onConferenceNameListChange != NULL) {
-            windows[i]->onConferenceNameListChange(windows[i], m, groupnumber);
+            windows[i]->onConferenceNameListChange(windows[i], m, conferencenum);
         }
     }
 }
 
-void on_conference_peer_name(Tox *m, uint32_t groupnumber, uint32_t peernumber, const uint8_t *name,
+void on_conference_peer_name(Tox *m, uint32_t conferencenum, uint32_t peernumber, const uint8_t *name,
                              size_t length, void *userdata)
 {
     UNUSED_VAR(userdata);
@@ -208,12 +208,12 @@ void on_conference_peer_name(Tox *m, uint32_t groupnumber, uint32_t peernumber, 
 
     for (uint8_t i = 0; i < MAX_WINDOWS_NUM; ++i) {
         if (windows[i] != NULL && windows[i]->onConferencePeerNameChange != NULL) {
-            windows[i]->onConferencePeerNameChange(windows[i], m, groupnumber, peernumber, nick, length);
+            windows[i]->onConferencePeerNameChange(windows[i], m, conferencenum, peernumber, nick, length);
         }
     }
 }
 
-void on_conference_title(Tox *m, uint32_t groupnumber, uint32_t peernumber, const uint8_t *title, size_t length,
+void on_conference_title(Tox *m, uint32_t conferencenum, uint32_t peernumber, const uint8_t *title, size_t length,
                          void *userdata)
 {
     UNUSED_VAR(userdata);
@@ -223,7 +223,7 @@ void on_conference_title(Tox *m, uint32_t groupnumber, uint32_t peernumber, cons
 
     for (uint8_t i = 0; i < MAX_WINDOWS_NUM; ++i) {
         if (windows[i] != NULL && windows[i]->onConferenceTitleChange != NULL) {
-            windows[i]->onConferenceTitleChange(windows[i], m, groupnumber, peernumber, data, length);
+            windows[i]->onConferenceTitleChange(windows[i], m, conferencenum, peernumber, data, length);
         }
     }
 }
