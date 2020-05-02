@@ -421,7 +421,7 @@ void cmd_groupchat(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*arg
     self_nick[nick_length] = '\0';
 
     TOX_ERR_GROUP_NEW err;
-    uint32_t groupnum = tox_group_new(m, TOX_GROUP_PRIVACY_STATE_PUBLIC, (const uint8_t *) name, len,
+    uint32_t groupnumber = tox_group_new(m, TOX_GROUP_PRIVACY_STATE_PUBLIC, (const uint8_t *) name, len,
                                       (const uint8_t *) self_nick, nick_length, &err);
 
     if (err != TOX_ERR_GROUP_NEW_OK) {
@@ -446,15 +446,15 @@ void cmd_groupchat(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*arg
         return;
     }
 
-    int init = init_groupchat_win(m, groupnum, name, len);
+    int init = init_groupchat_win(m, groupnumber, name, len);
 
     if (init == -1) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Group chat window failed to initialize.");
-        tox_group_leave(m, groupnum, NULL, 0, NULL);
+        tox_group_leave(m, groupnumber, NULL, 0, NULL);
     } else if (init == -2) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,
                       "You have been kicked from a group. Close the window and try again.");
-        tox_group_leave(m, groupnum, NULL, 0, NULL);
+        tox_group_leave(m, groupnumber, NULL, 0, NULL);
     }
 }
 
@@ -510,7 +510,7 @@ void cmd_join(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MA
     self_nick[nick_length] = '\0';
 
     TOX_ERR_GROUP_JOIN err;
-    uint32_t groupnum = tox_group_join(m, (uint8_t *) id_bin, (const uint8_t *) self_nick, nick_length,
+    uint32_t groupnumber = tox_group_join(m, (uint8_t *) id_bin, (const uint8_t *) self_nick, nick_length,
                                        (const uint8_t *) passwd, passwd_len, &err);
 
     if (err != TOX_ERR_GROUP_JOIN_OK) {
@@ -523,15 +523,15 @@ void cmd_join(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MA
         return;
     }
 
-    int init = init_groupchat_win(m, groupnum, NULL, 0);
+    int init = init_groupchat_win(m, groupnumber, NULL, 0);
 
     if (init == -1) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Group chat window failed to initialize.");
-        tox_group_leave(m, groupnum, NULL, 0, NULL);
+        tox_group_leave(m, groupnumber, NULL, 0, NULL);
     } else if (init == -2) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0,
                       "You have been kicked from a group. Close the window and try again.");
-        tox_group_leave(m, groupnum, NULL, 0, NULL);
+        tox_group_leave(m, groupnumber, NULL, 0, NULL);
     }
 }
 

@@ -204,22 +204,22 @@ void cmd_group_invite(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*
         return;
     }
 
-    int groupnum = atoi(argv[1]);
+    int groupnumber = atoi(argv[1]);
 
 
-    if (groupnum == 0 && strcmp(argv[1], "0")) {    /* atoi returns 0 value on invalid input */
+    if (groupnumber == 0 && strcmp(argv[1], "0")) {    /* atoi returns 0 value on invalid input */
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Invalid group number.");
         return;
     }
 
     TOX_ERR_GROUP_INVITE_FRIEND err;
 
-    if (!tox_group_invite_friend(m, groupnum, self->num, &err)) {
+    if (!tox_group_invite_friend(m, groupnumber, self->num, &err)) {
         line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Failed to invite contact to group (error %d).", err);
         return;
     }
 
-    line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Invited contact to Group %d.", groupnum);
+    line_info_add(self, NULL, NULL, NULL, SYS_MSG, 0, 0, "Invited contact to Group %d.", groupnumber);
 }
 
 void cmd_savefile(WINDOW *window, ToxWindow *self, Tox *m, int argc, char (*argv)[MAX_STR_SIZE])
