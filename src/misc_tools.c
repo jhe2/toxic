@@ -435,7 +435,7 @@ size_t get_group_nick_truncate(Tox *m, char *buf, uint32_t peer_id, uint32_t gro
     TOX_ERR_GROUP_PEER_QUERY err;
     size_t len = tox_group_peer_get_name_size(m, groupnum, peer_id, &err);
 
-    if (err != TOX_ERR_GROUP_PEER_QUERY_OK) {
+    if (err != TOX_ERR_GROUP_PEER_QUERY_OK || len == 0) {
         strcpy(buf, UNKNOWN_NAME);
         len = strlen(UNKNOWN_NAME);
     } else {
