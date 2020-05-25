@@ -845,7 +845,7 @@ void kill_all_windows(Tox *m)
         } else if (windows[i]->is_conference) {
             free_conference(windows[i], windows[i]->num);
         } else if (windows[i]->is_group) {
-            exit_groupchat(windows[i], m, windows[i]->num, NULL, 0);
+            exit_groupchat(windows[i], m, windows[i]->num, user_settings->group_part_message, strlen(user_settings->group_part_message));
         }
     }
 
